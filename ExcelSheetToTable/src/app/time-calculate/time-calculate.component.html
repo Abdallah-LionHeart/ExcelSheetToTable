@@ -1,0 +1,74 @@
+<div class="container">
+  <form>
+    <div class="form-row row bg-light">
+      <div class="col-6">
+        <label for="start-date" class="labelPosition">Start Date</label>
+        <input type="date" id="start-date" name="startDate" name="startDate" [(ngModel)]="startDate" class="form-control">
+      </div>
+      <div class="col-6">
+        <label for="end-date" class="labelPosition">End Date</label>
+        <input type="date" id="end-date" name="endDate" [(ngModel)]="endDate" class="form-control">
+      </div>
+      <div class="col-6">
+        <label for="totalDays" class="labelPosition">Total Days</label>
+        <input type="text" id="totalDays" class="form-control" name="totalDays" [value]="totalDays" disabled>
+      </div>
+      <div class="col-6">
+        <label for="hours-input" class="labelPosition">Total Authorization Period Hours</label>
+        <input type="number" id="hours-input" name="hoursInput" [(ngModel)]="hoursInput" class="form-control">
+      </div>
+      <div class="col-6 form-check checkboxstyle ms-4">
+        <label for="include-end-date" class="form-check-label">Include End Date</label>
+        <input type="checkbox" id="include-end-date" class="form-check-input" name="includeEndDate" [(ngModel)]="includeEndDate">
+      </div>
+      <div class="row justify-content-center">
+        <div class="col-2 btn-group">
+          <button type="button" class="btn btn-outline me-2" (click)="calculatePeriod()">Submit</button>
+          <button type=button class="btn btn-outline ps-3 pe-3" name=print value="Print" onClick="window.print()">Print</button>
+        </div>
+      </div>
+    </div>
+    <!-- </form> -->
+    <div class="row resultInfo bg-dark-subtle">
+      <div class="col-6">
+        <h3 class="mt-2"><strong class="me-2">From :</strong> {{DisplayStartDate}} <strong class="ms-4">To :</strong> {{DisplayEndDate}} </h3>
+        <hr class="my-2">
+        <h1>Result : {{totalDays}} Days</h1>
+        <hr class="my-2">
+        <div *ngIf="!hoursInput">
+          <h3>Hours per Day: {{ hoursPerDay }}</h3>
+          <h3>Hours per Week: {{ hoursPerWeek }}</h3>
+        </div>
+
+        <div *ngIf="hoursInput">
+          <h3>Hours per Day: {{ hoursPerDay }} hours</h3>
+          <h3>Hours per Week: {{ hoursPerWeek }} hours</h3>
+        </div>
+      </div>
+
+      <div class="col-6" *ngIf="totalWeek !== undefined">
+        <!-- <div class="col-6"> -->
+        <div class="table-responsive">
+          <table>
+            <tr>
+              <th>Total Week</th>
+              <td>{{totalWeek}} weeks</td>
+            </tr>
+            <tr>
+              <th>Total Days</th>
+              <td>{{totalDays}} days</td>
+            </tr>
+            <tr>
+              <th>Total Hours</th>
+              <td>{{totalHours}} hours</td>
+            </tr>
+            <tr>
+              <th>Total Minutes</th>
+              <td>{{totalMinutes}} minutes</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
