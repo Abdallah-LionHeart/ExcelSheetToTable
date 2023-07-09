@@ -4,6 +4,13 @@
   margin-top: 1rem;
 }
 
+span {
+  background: none;
+  padding: 0;
+  margin: 0;
+  color: unset;
+}
+
 .btn:hover {
   background-color: lightblue;
   color: black;

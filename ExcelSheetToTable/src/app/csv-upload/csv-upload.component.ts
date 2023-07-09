@@ -107,7 +107,7 @@ export class CsvUploadComponent implements OnInit {
           patient.scheduledHours = patient.visits.map(x => x.visitScheduledHourDiffrence).reduce((partialSum, a) => partialSum + a, 0);
           patient.billableHours = patient.visits
             .filter(x => x.validation.missedOut == false && x.validation.missedIn == false && x.billed == false)
-            .map(x => x.visitScheduledHourDiffrence)
+            .map(x => x.actualVisitHourDiffrence)
             .reduce((partialSum, a) => partialSum + a, 0);
 
           this.patients.push(patient);
@@ -128,12 +128,12 @@ export class CsvUploadComponent implements OnInit {
 
     rows.forEach(x => {
       let date = new Date(x.date);
-      let actualVisitStart = this.getStartTime(new Date(date), x.actualVisit);
-      let actualVisitEnd = this.getEndTime(new Date(date), x.actualVisit, actualVisitStart);
-      let actualVisitHourDiffrence = this.getTimeDiffrenceInHours(actualVisitStart, actualVisitEnd);
       let visitScheduledStart = this.getStartTime(new Date(date), x.visitScheduled);
       let visitScheduledEnd = this.getEndTime(new Date(date), x.visitScheduled, visitScheduledStart);
       let visitScheduledHourDiffrence = this.getTimeDiffrenceInHours(visitScheduledStart, visitScheduledEnd);
+      let actualVisitStart = this.getStartTime(new Date(date), x.actualVisit);
+      let actualVisitEnd = this.getEndTime(new Date(date), x.actualVisit, actualVisitStart);
+      let actualVisitHourDiffrence = this.getActualVisitTimeDiffrenceInHours(actualVisitStart, actualVisitEnd, new Date(visitScheduledStart as Date), new Date(visitScheduledEnd as Date));
 
       let visit: Visit = {
         id: x.id,
@@ -204,10 +204,38 @@ export class CsvUploadComponent implements OnInit {
     }
     return 0;
   }
+  // !
+  getActualVisitTimeDiffrenceInHours(actualStart: Date | undefined, actualEnd: Date | undefined, scheduledStart: Date | undefined, scheduledEnd: Date | undefined): number {
+    let quarters = 0;
+    if (actualStart && scheduledStart) {
+      let startDifInMinutes = ((actualStart as any) - (scheduledStart as any)) / 60000;
+
+      if (startDifInMinutes <= 5) {
+      } else if (startDifInMinutes > 5) {
+        quarters = Math.ceil(startDifInMinutes / 15);
+      }
+    }
+
+
+    if (quarters > 0) {
+      let date = scheduledStart as Date;
+      scheduledStart?.setMinutes(quarters * 15);
+    }
+
+    if (scheduledStart && scheduledEnd && scheduledEnd > scheduledStart) {
+      let value = ((scheduledEnd as any) - (scheduledStart as any)) / 3600000;
+      return value;
+    }
+    return 0;
+  }
+  // !
 
   getTimeDiffrenceInMinutes(start: Date | undefined, end?: Date): number {
     if (start && end) {
-      return ((start as any) - (end as any)) / 60000;
+      let value = ((start as any) - (end as any)) / 60000;
+      console.log(value);
+      return value;
+
     }
     return 0;
   }
@@ -241,7 +269,7 @@ export class CsvUploadComponent implements OnInit {
 
     if (visit.actualVisitStart && visit.actualVisitEnd) {
 
-      let startTimeDiff = this.getTimeDiffrenceInMinutes(visit.visitScheduledStart, visit.actualVisitStart);
+      let startTimeDiff = this.getTimeDiffrenceInMinutes(new Date(visit.visitScheduledStart as Date), new Date(visit.actualVisitStart as Date));
       if (startTimeDiff > 0) {
         validation.earlyIn = startTimeDiff;
         notes.push('Early in by ' + startTimeDiff + ' Min.');
@@ -258,15 +286,20 @@ export class CsvUploadComponent implements OnInit {
 
       } else if (endTimeDiff < 0) {
         validation.lateOut = endTimeDiff;
-        notes.push('Late out by ' + endTimeDiff + ' Min.');
+        notes.push('Late out by ' + Math.abs(endTimeDiff) + ' Min.');
+
       };
 
     }
 
-    if (validation.missedIn || validation.missedOut) {
+    if (visit.billed) {
+      validation.color = 'green';
+    } else if (validation.missedIn || validation.missedOut) {
       validation.color = 'red';
-    } else if (validation.earlyIn || validation.lateOut) {
+    } else if (validation.earlyIn) {
       validation.color = 'lightgreen';
+    } else if (validation.lateOut) {
+      validation.color = 'gold';
     } else if (validation.earlyOut || validation.lateIn) {
       validation.color = 'gold';
     } else if (validation.missedOut) {
